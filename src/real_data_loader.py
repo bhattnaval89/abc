@@ -63,7 +63,17 @@ from spatial_matching import match_detections_to_facilities
 # ---------------------------------------------------------------------------
 
 FIRMS_AREA_URL = "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{map_key}/{source}/{bbox}/{day_range}/{date}"
-OVERPASS_URL = "https://overpass.kumi.systems/api/interpreter"
+
+# Multiple public Overpass mirrors. Some mirrors are frequently slow/overloaded
+# (overpass.kumi.systems in particular times out often), so we try each one in
+# turn and only give up if ALL of them fail. This makes live-data loading far
+# more reliable without needing our own Overpass server.
+OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.openstreetmap.ru/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+]
 
 # FIRMS sensors to pull. Feel free to trim this list - more sensors means
 # more detections but also more request time.
@@ -73,6 +83,10 @@ DEFAULT_FIRMS_SOURCES = ["VIIRS_SNPP_NRT", "VIIRS_NOAA20_NRT", "MODIS_NRT"]
 FIRMS_MAX_DAY_RANGE = 10
 
 REQUEST_TIMEOUT_SECONDS = 30
+
+# Overpass mirrors can be genuinely slow under load, so give them more room
+# than the default FIRMS timeout before giving up on a given mirror.
+OVERPASS_TIMEOUT_SECONDS = 45
 
 
 # ---------------------------------------------------------------------------
@@ -261,9 +275,11 @@ def _guess_facility_type(tags):
     return "Generic Manufacturing"
 
 
-def fetch_osm_facilities(bbox, timeout=REQUEST_TIMEOUT_SECONDS):
+def fetch_osm_facilities(bbox, timeout=OVERPASS_TIMEOUT_SECONDS):
     """
     Queries the Overpass API for industrial facilities inside a bounding box.
+    Tries each mirror in OVERPASS_URLS in turn (some public mirrors are
+    frequently slow/overloaded) and only raises once every mirror has failed.
 
     Parameters
     ----------
@@ -277,35 +293,52 @@ def fetch_osm_facilities(bbox, timeout=REQUEST_TIMEOUT_SECONDS):
 
     Raises
     ------
-    RuntimeError on network failure or an empty/invalid response.
+    RuntimeError if every mirror fails, or all of them return zero facilities.
     """
     west, south, east, north = bbox
     # Overpass wants (south,west,north,east) order for its bbox filter.
     overpass_bbox = f"{south},{west},{north},{east}"
 
+    # IMPORTANT: real-world industrial "landuse=industrial" areas in OSM are
+    # almost always mapped as polygons (way/relation), not single nodes.
+    # Querying nodes only (as before) silently returns zero results for most
+    # regions. We query all three element types and ask Overpass for a
+    # center point on ways/relations so every result still has a lat/lon.
     query = f"""
-[out:json][timeout:25];
+[out:json][timeout:40];
 (
   node["landuse"="industrial"]({overpass_bbox});
+  way["landuse"="industrial"]({overpass_bbox});
+  relation["landuse"="industrial"]({overpass_bbox});
 );
 out center tags;
 """
 
-    try:
-        resp = requests.post(
-            OVERPASS_URL,
-            data={"data": query},
-            headers={"User-Agent": "industrial-thermal-prototype/1.0"},
-            timeout=timeout,
-        )
-        resp.raise_for_status()
-    except requests.RequestException as e:
-        raise RuntimeError(f"Overpass API request failed: {e}")
+    errors = []
+    payload = None
 
-    try:
-        payload = resp.json()
-    except ValueError as e:
-        raise RuntimeError(f"Overpass API returned non-JSON response: {e}")
+    for mirror_url in OVERPASS_URLS:
+        try:
+            resp = requests.post(
+                mirror_url,
+                data={"data": query},
+                headers={"User-Agent": "industrial-thermal-prototype/1.0"},
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+            break  # success - stop trying other mirrors
+        except requests.RequestException as e:
+            errors.append(f"{mirror_url}: request failed ({e})")
+            continue
+        except ValueError as e:
+            errors.append(f"{mirror_url}: non-JSON response ({e})")
+            continue
+
+    if payload is None:
+        raise RuntimeError(
+            "All Overpass mirrors failed:\n" + "\n".join(errors)
+        )
 
     elements = payload.get("elements", [])
     if not elements:
