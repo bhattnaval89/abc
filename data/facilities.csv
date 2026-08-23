@@ -1,0 +1,31 @@
+facility_id,facility_name,facility_type,latitude,longitude
+FAC_001,Bharat Generic Manufacturing,Generic Manufacturing,22.68436,86.25052
+FAC_002,Meghna Chemical Plant,Chemical Plant,22.79133,86.21957
+FAC_003,Rudra Generic Manufacturing,Generic Manufacturing,22.8795,86.24042
+FAC_004,Utkal Waste Facility,Waste Facility,22.81607,86.21776
+FAC_005,Dakshin Steel Plant,Steel Plant,22.74119,86.05925
+FAC_006,Kaveri Generic Manufacturing,Generic Manufacturing,22.78102,86.11438
+FAC_007,Kanchan Generic Manufacturing,Generic Manufacturing,22.77256,86.30602
+FAC_008,Shakti Generic Manufacturing,Generic Manufacturing,22.72018,86.06749
+FAC_009,Vishwa Refinery,Refinery,22.73442,86.13808
+FAC_010,Adarsh Chemical Plant,Chemical Plant,22.84857,86.21711
+FAC_011,Uttar Cement Plant,Cement Plant,22.88517,86.24929
+FAC_012,Nilgiri Generic Manufacturing,Generic Manufacturing,22.77192,86.29421
+FAC_013,Sagar Waste Facility,Waste Facility,22.70009,86.05681
+FAC_014,Sindhu Generic Manufacturing,Generic Manufacturing,22.67701,86.26671
+FAC_015,Vayu Chemical Plant,Chemical Plant,22.78856,86.09838
+FAC_016,Shanti Thermal Power Plant,Thermal Power Plant,22.80031,86.09569
+FAC_017,Tarang Waste Facility,Waste Facility,22.8589,86.18385
+FAC_018,Suvarna Steel Plant,Steel Plant,22.76431,86.14045
+FAC_019,Amber Generic Manufacturing,Generic Manufacturing,22.83908,86.15854
+FAC_020,Ganga Waste Facility,Waste Facility,22.67629,86.0854
+FAC_021,Prithvi Generic Manufacturing,Generic Manufacturing,22.93857,86.32257
+FAC_022,Himalaya Cement Plant,Cement Plant,22.85991,86.12976
+FAC_023,Vindhya Generic Manufacturing,Generic Manufacturing,22.94075,86.28363
+FAC_024,Prabha Generic Manufacturing,Generic Manufacturing,22.86507,86.18481
+FAC_025,Vajra Generic Manufacturing,Generic Manufacturing,22.73167,86.07892
+FAC_026,Surya Thermal Power Plant,Thermal Power Plant,22.92078,86.18673
+FAC_027,Nirmal Chemical Plant,Chemical Plant,22.71071,86.14179
+FAC_028,Kalinga Steel Plant,Steel Plant,22.82377,86.10303
+FAC_029,Agni Refinery,Refinery,22.90698,86.27756
+FAC_030,Mangal Waste Facility,Waste Facility,22.86584,86.17963
